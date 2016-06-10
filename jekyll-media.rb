@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'nokogiri'
+require 'command_line_reporter'
 
 Jekyll::Hooks.register(:site, :post_write) do |site|
 
@@ -35,9 +36,26 @@ Jekyll::Hooks.register(:site, :post_write) do |site|
     f.slice! site.dest
   }
 
-  puts "Files not in use\n"
-    files_not_in_use = files - hrefs
-  puts "Broken references\n"
-    broken_references = hrefs - files
-  puts broken_references
+  files_not_in_use = files - hrefs
+  broken_references = hrefs - files
+
+  Report.new.run(broken_references, 'Broken references')
+  Report.new.run(files_not_in_use, 'Files not in use')
+end
+
+class Report
+  include CommandLineReporter
+
+  def run(results, title)
+    table(:border => true) do
+     row :header => true do
+       column(title, :width => 70)
+     end
+     results.each { |r|
+       row do
+         column(r)
+       end
+     }
+   end
+  end
 end
