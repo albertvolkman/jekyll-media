@@ -11,6 +11,7 @@ Jekyll::Hooks.register(:site, :post_write) do |site|
     'uses',
     'files_not_in_use',
     'broken_references',
+    'changelog',
   ]
 
   FileUtils.mkdir_p File.dirname(site.dest) + '/' + report_directory

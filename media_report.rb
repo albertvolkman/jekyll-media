@@ -2,7 +2,7 @@ require 'digest'
 require 'nokogiri'
 
 class MediaReport
-  attr_reader :media, :counts, :hrefs, :uses, :filepaths, :files_not_in_use, :broken_references
+  attr_reader :media, :counts, :hrefs, :uses, :filepaths, :files_not_in_use, :broken_references, :changelog
 
   def initialize(site)
     @site = site
@@ -11,12 +11,14 @@ class MediaReport
     @counts = {}
     @uses = {}
     @filepaths = []
+    @changelog = []
 
     self.get_files()
     self.count_per_type()
     self.get_hrefs()
     self.files_not_in_use()
     self.broken_references()
+    self.changelog()
   end
 
   def get_files()
@@ -72,5 +74,31 @@ class MediaReport
 
   def broken_references()
     @broken_references = @hrefs - @filepaths
+  end
+
+  def changelog()
+    report_directory = @site.config['media'].fetch('report_directory')
+    prior_run = File.dirname(@site.dest) + '/' + report_directory + 'media.json'
+    if File.file?(prior_run)
+      prior_run = YAML.load_file(prior_run)
+
+      prior_run_keys = prior_run.keys - @media.keys
+      new_run_keys = @media.keys - prior_run.keys
+
+      prior_run_keys.each do |k|
+        prior = prior_run[k]
+        new_run_keys.each do |k|
+          new = @media[k]
+
+          if prior.type == new.type && prior.size == new.size
+            # Possible file rename.
+            @changelog << "File #{prior.name} renamed to #{new.name}"
+          elsif prior.type == new.type && prior.name == new.name
+            # Possible file replacement.
+            @changelog << "File #{prior.name} replaced with #{new.name}"
+          end
+        end
+      end
+    end
   end
 end
