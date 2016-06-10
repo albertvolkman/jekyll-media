@@ -4,6 +4,7 @@ require 'ruby-filemagic'
 class MediaFile
   attr_reader :id, :name, :path, :size, :type
 
+  # @todo add file created/changed date
   def initialize(f, site)
     file = File.stat(f)
     type = FileMagic.new.file(f).split(',').first
