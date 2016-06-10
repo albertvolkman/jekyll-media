@@ -1,6 +1,8 @@
 require 'fileutils'
 
 Jekyll::Hooks.register(:site, :post_write) do |site|
+  config = site.config['media'] || {}
+  report_directory = config.fetch('report_directory')
   mr = MediaReport.new(site)
 
   reports = [
@@ -10,7 +12,6 @@ Jekyll::Hooks.register(:site, :post_write) do |site|
     'files_not_in_use',
     'broken_references',
   ]
-  report_directory = '_media_reports'
 
   FileUtils.mkdir_p File.dirname(site.dest) + '/' + report_directory
 
